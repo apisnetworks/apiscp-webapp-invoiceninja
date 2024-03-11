@@ -167,7 +167,14 @@
 				return (array)$ver;
 			}
 			$versions = (new Webapps\VersionFetcher\Github)->setVersionField('tag_name')->fetch('invoiceninja/invoiceninja');
-			$versions = array_filter($versions, fn($meta) => (int)$meta['version'] >= 5 && version_compare($meta['version'], '5.5.13', '>='));
+			// failed for various reasons, including dep failures against 8.2 or invalid VERSION.txt fields
+			$versions = array_filter(
+				$versions,
+				fn($meta) => (int)$meta['version'] >= 5 && version_compare($meta['version'], '5.5.13', '>=') &&
+					$meta['version'] !== '5.5.16' && $meta['version'] !== '5.5.82' && $meta['version'] !== '5.5.85' &&
+					$meta['version'] !== '5.5.91' && $meta['version'] !== '5.5.109' && $meta['version'] !== '5.5.121' &&
+					$meta['version'] !== '5.7.0' && $meta['version'] !== '5.7.25' && $meta['version'] !== '5.7.40' &&
+					$meta['version'] !== '5.7.41');
 			$cache->set($key, $versions, 43200);
 			return $versions;
 		}
