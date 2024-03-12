@@ -110,7 +110,6 @@
 			return $ret['success'] ?: error($ret['stderr']);
 		}
 
-
 		protected function postInstall(string $hostname, string $path): bool
 		{
 			$approot = $this->getAppRoot($hostname, $path);
@@ -122,6 +121,28 @@
 				return error("Failed to finish %(name)s install: %(err)s", [
 					'name' => static::APP_NAME, 'err' => coalesce($ret['stderr'], $ret['stdout'])
 				]);
+			}
+
+			if ($this->crontab_permitted() && !$this->crontab_enabled()) {
+				debug("Implicitly started %(what)s", ['what' => 'Task Scheduler']);
+				$this->crontab_start();
+				for ($i = 0; $i < 10; $i++) {
+					if ($this->crontab_enabled()) {
+						break;
+					}
+					usleep(500000);
+				}
+			}
+
+			if ($this->crontab_enabled()) {
+				$formedCommand = array_get($this->execPhp(
+					$approot,
+					'-r %s',
+					['echo "cd ' . escapeshellarg($approot) . ' && ", escapeshellarg(PHP_BINARY) . " ' . self::BINARY_NAME . ' schedule:run >> /dev/null 2>&1";']
+				), 'stdout');
+				$this->crontab_add_job('*/5', '*', '*', '*', '*', $formedCommand);
+			} else {
+				warn("%(what)s disabled on account. Unable to schedule jobs automatically", ['what' => 'Task Scheduler']);
 			}
 
 			return $this->postUpdate($hostname, $path);
