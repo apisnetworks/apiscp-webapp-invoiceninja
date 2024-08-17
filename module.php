@@ -53,7 +53,11 @@
 			}
 
 			$file = $this->file_exists("{$approot}/app/constants.php") ? '/app/constants.php' : '/app/Constants.php';
-			return Webapps\App\Type\Invoiceninja\DefineReplace::instantiateContexted($this->getAuthContextFromDocroot($approot), ["{$approot}/{$file}"])->get('NINJA_VERSION');
+			try {
+				return Webapps\App\Type\Invoiceninja\DefineReplace::instantiateContexted($this->getAuthContextFromDocroot($approot), ["{$approot}/{$file}"])->get('NINJA_VERSION');
+			} catch (\Exception $e) {
+				return null;
+			}
 		}
 
 		protected function generateDatabaseStorage(
