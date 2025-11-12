@@ -224,11 +224,11 @@
 				]);
 			}
 			$dlUrl = array_first($meta['assets'], static function ($asset) {
-				return substr($asset['name'], -4) === '.zip';
+				return in_array(substr($asset['name'], -4), ['.zip', 'r.gz']);
 			});
 			$dlUrl = $dlUrl['browser_download_url'] ?? $meta['zipball_url'];
 			$head = "{$approot}/" . $this->getInternalName() . '/';
-			$this->download($dlUrl, "{$head}/invoice.zip");
+			$this->download($dlUrl, "{$head}/invoice-tmp" . strstr(strrchr($dlUrl, '/'), '.'));
 			$entries = $this->file_get_directory_contents($head);
 			if (count($entries) === 1) {
 				$head .= "/{$entries[0]['filename']}/";
